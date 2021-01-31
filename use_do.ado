@@ -94,13 +94,13 @@ program define use_do
   }
 
   // Check if the file exists
-  capture confirm file "`proj_dir'/`filename'"
+  capture confirm file "`proj_dir'/src/stata/`filename'"
   if _rc == 0 {
     local ans = ""
     while "`ans'" != "y" & "`ans'" != "n" {
       disp "`filename' already exists. Replace it? (y/n)?" _request(_ans)
       if "`ans'" == "y" {
-        file open mydo using "`proj_dir'/`filename'", write replace
+        file open mydo using "`proj_dir'/src/stata/`filename'", write replace
         continue, break
       }
       else if "`ans'" == "n" {
@@ -110,12 +110,13 @@ program define use_do
     }
   }
   else {
-    file open mydo using "`proj_dir'/`filename'", write
+    file open mydo using "`proj_dir'/src/stata/`filename'", write
   }
 
   // Write a template header
   file write mydo ("*" + "=" * 79) _n
   file write mydo ("* Project       : " + "`project'") _n
+  file write mydo ("* Title         : " + "`title'") _n
   file write mydo ("* Author        : " + "`author'")  _n
   file write mydo ("* Version       : ") _n
   file write mydo ("* Date added    : " + c(current_date)) _n
