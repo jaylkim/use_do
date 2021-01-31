@@ -56,9 +56,10 @@ Copyright (c) 2021 Jongyeon Kim
 
 program define use_do
 
-  syntax anything(name=filename id="A do-file name is") ///
+  syntax anything(name=filename id="Do-file name is") ///
   [,                ///
   PROJect(str)      /// Project name
+  Title(str)        /// Script title
   AUThor(str)       /// Author name
   Depends(namelist) /// Dependencies other than the base commands
   STATAver(integer 13) /// Stata version your script will run on
@@ -68,26 +69,38 @@ program define use_do
   if lower(substr("`filename'", -3, .)) != ".do" {
     local filename = "`filename'" + ".do"
   }
+  
+  // Load the meta data
+  preserve
+  
+  use config.dta, clear
 
-  // If an option is not given, leave it empty
+  local proj_config = project
+  local aut_config = author
+  local depend_config = dependency
+  local proj_dir = project_dir
+  
+  restore
+
+  // If an option is not given, use the meta data 
   if missing("`project'") {
-    local project = ""
+    local project = "`proj_config'"
   }
   if missing("`author'") {
-    local author = ""
+    local author = "`aut_config'"
   }
   if missing("`depends'") {
-    local depends = ""
+    local depends = "`depend_config'"
   }
 
   // Check if the file exists
-  capture confirm file "`filename'"
+  capture confirm file "`proj_dir'/`filename'"
   if _rc == 0 {
     local ans = ""
     while "`ans'" != "y" & "`ans'" != "n" {
       disp "`filename' already exists. Replace it? (y/n)?" _request(_ans)
       if "`ans'" == "y" {
-        file open mydo using `filename', write replace
+        file open mydo using "`proj_dir'/`filename'", write replace
         continue, break
       }
       else if "`ans'" == "n" {
@@ -97,7 +110,7 @@ program define use_do
     }
   }
   else {
-    file open mydo using `filename', write
+    file open mydo using "`proj_dir'/`filename'", write
   }
 
   // Write a template header
